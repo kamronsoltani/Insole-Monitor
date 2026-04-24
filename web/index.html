@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Insole Pressure Monitor</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+background:
+radial-gradient(circle at 12% 20%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.0) 32%),
+radial-gradient(circle at 85% 18%, rgba(173,216,255,0.38) 0%, rgba(173,216,255,0.0) 28%),
+radial-gradient(circle at 50% 85%, rgba(212,202,255,0.30) 0%, rgba(212,202,255,0.0) 24%),
+linear-gradient(180deg,#f8fbff 0%,#eef4fb 52%,#e9f0f8 100%);
+min-height:100vh;
+padding:20px;
+color:#1f2937;
+}
+
+.container{max-width:1200px;margin:0 auto}
+
+.header{text-align:center;margin-bottom:28px}
+
+.header-top{
+color:rgba(71,85,105,0.76);
+font-size:12px;
+font-weight:700;
+letter-spacing:1.5px;
+margin-bottom:8px;
+text-transform:uppercase;
+}
+
+.header h1{
+font-size:2.45em;
+color:#1f2a37;
+font-weight:700;
+letter-spacing:-0.03em;
+}
+
+.header p{
+font-size:0.98em;
+color:#64748b;
+font-weight:600;
+margin-top:6px;
+}
+
+.alert-msg{
+background:linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,237,237,0.78));
+color:#dc2626;
+padding:14px 16px;
+border-radius:20px;
+margin-bottom:18px;
+display:none;
+text-align:center;
+font-weight:700;
+font-size:14px;
+border:1px solid rgba(255,255,255,0.6);
+box-shadow:0 14px 30px rgba(148,163,184,0.14);
+backdrop-filter:blur(18px);
+}
+
+.alert-msg.show{display:block}
+
+.main{
+display:grid;
+grid-template-columns:0.9fr 1.2fr 0.9fr;
+gap:20px;
+margin-bottom:20px;
+align-items:start;
+}
+
+.card{
+background:rgba(255,255,255,0.46);
+border:1px solid rgba(255,255,255,0.58);
+border-radius:28px;
+padding:22px;
+box-shadow:0 16px 36px rgba(148,163,184,0.16), inset 0 1px 0 rgba(255,255,255,0.75);
+backdrop-filter:blur(18px);
+}
+
+.card h2{
+color:#1f2a37;
+margin-bottom:16px;
+font-size:1.22em;
+border-bottom:1px solid rgba(255,255,255,0.55);
+padding-bottom:10px;
+font-weight:700;
+}
+
+.group{margin-bottom:16px}
+
+.group label{
+display:block;
+font-weight:600;
+margin-bottom:7px;
+color:#516072;
+font-size:13px;
+}
+
+input,select{
+width:100%;
+padding:12px 14px;
+border:1px solid rgba(255,255,255,0.68);
+border-radius:16px;
+font-size:14px;
+background:rgba(255,255,255,0.56);
+color:#1f2937;
+box-shadow:0 6px 18px rgba(148,163,184,0.08), inset 0 1px 0 rgba(255,255,255,0.7);
+backdrop-filter:blur(10px);
+}
+
+input:focus,select:focus{
+outline:none;
+border-color:rgba(147,197,253,0.9);
+box-shadow:0 0 0 4px rgba(59,130,246,0.10), 0 8px 18px rgba(148,163,184,0.10);
+}
+
+.slider{
+width:100%;
+height:7px;
+border-radius:999px;
+background:linear-gradient(90deg, rgba(191,219,254,0.95), rgba(196,181,253,0.92));
+outline:none;
+-webkit-appearance:none;
+}
+
+.slider::-webkit-slider-thumb{
+-webkit-appearance:none;
+width:19px;
+height:19px;
+border-radius:50%;
+background:#ffffff;
+border:none;
+box-shadow:0 6px 16px rgba(148,163,184,0.22), 0 0 0 4px rgba(255,255,255,0.35);
+cursor:pointer;
+}
+
+.toggle{
+display:flex;
+gap:8px;
+margin-top:8px;
+}
+
+.toggle button{
+flex:1;
+padding:10px 12px;
+border:1px solid rgba(255,255,255,0.68);
+background:rgba(255,255,255,0.44);
+color:#516072;
+border-radius:16px;
+cursor:pointer;
+font-weight:600;
+font-size:13px;
+transition:all 0.2s ease;
+box-shadow:0 8px 18px rgba(148,163,184,0.10);
+backdrop-filter:blur(10px);
+}
+
+.toggle button.active{
+background:linear-gradient(135deg, rgba(219,234,254,0.88), rgba(224,231,255,0.88));
+color:#2563eb;
+border-color:rgba(255,255,255,0.8);
+box-shadow:0 10px 20px rgba(148,163,184,0.12);
+}
+
+.submit{
+width:100%;
+padding:13px;
+background:linear-gradient(135deg, rgba(96,165,250,0.95), rgba(129,140,248,0.92));
+color:white;
+border:none;
+border-radius:18px;
+cursor:pointer;
+font-weight:700;
+font-size:14px;
+box-shadow:0 14px 24px rgba(96,165,250,0.18);
+transition:transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.injury-box{
+background:rgba(255,255,255,0.48);
+border:1px solid rgba(255,255,255,0.66);
+padding:10px;
+border-radius:16px;
+margin-top:8px;
+text-align:center;
+color:#5a6b7f;
+font-size:12px;
+font-weight:600;
+box-shadow:0 8px 18px rgba(148,163,184,0.08);
+backdrop-filter:blur(10px);
+}
+
+.status{
+display:flex;
+align-items:center;
+gap:8px;
+margin-top:15px;
+}
+
+.dot{
+width:10px;
+height:10px;
+border-radius:50%;
+background:#b8c8db;
+transition:background 0.3s;
+box-shadow:0 0 10px rgba(184,200,219,0.8);
+}
+
+.dot.connected{
+background:#34d399;
+box-shadow:0 0 12px rgba(52,211,153,0.65);
+animation:blink 1s infinite;
+}
+
+.dot.disconnected{
+background:#f87171;
+box-shadow:0 0 12px rgba(248,113,113,0.6);
+animation:none;
+}
+
+@keyframes blink{
+0%,100%{opacity:1}
+50%{opacity:0.38}
+}
+
+.status span{
+color:#64748b;
+font-weight:600;
+font-size:13px;
+}
+
+.data-grid{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:12px;
+margin-bottom:15px;
+}
+
+.data{
+background:rgba(255,255,255,0.42);
+padding:14px 12px;
+border-radius:22px;
+text-align:center;
+border:1px solid rgba(255,255,255,0.62);
+box-shadow:0 10px 22px rgba(148,163,184,0.10), inset 0 1px 0 rgba(255,255,255,0.72);
+backdrop-filter:blur(12px);
+}
+
+.data.total{
+background:linear-gradient(135deg, rgba(239,246,255,0.78), rgba(238,242,255,0.74));
+border:1px solid rgba(255,255,255,0.82);
+}
+
+.data.alert{
+background:rgba(255,240,240,0.72);
+border-color:rgba(254,202,202,0.95);
+}
+
+.data.injured{
+background:rgba(239,246,255,0.78);
+border-color:rgba(191,219,254,0.95);
+}
+
+.data-val{
+font-size:28px;
+font-weight:700;
+color:#1f2937;
+}
+
+.data-unit{
+font-size:11px;
+color:#64748b;
+}
+
+.rings-card{
+margin-bottom:16px;
+background:rgba(255,255,255,0.38);
+border:1px solid rgba(255,255,255,0.62);
+border-radius:24px;
+padding:18px;
+box-shadow:0 10px 22px rgba(148,163,184,0.10), inset 0 1px 0 rgba(255,255,255,0.76);
+backdrop-filter:blur(14px);
+}
+
+.rings-title{
+font-size:13px;
+font-weight:700;
+color:#516072;
+margin-bottom:12px;
+text-align:center;
+}
+
+.rings-wrap{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:18px;
+flex-wrap:wrap;
+}
+
+.rings-svg{
+width:230px;
+height:230px;
+display:block;
+}
+
+.ring-bg{
+fill:none;
+stroke:#eaf0f6;
+stroke-linecap:round;
+}
+
+.ring-progress{
+fill:none;
+stroke-linecap:round;
+transform:rotate(-90deg);
+transform-origin:50% 50%;
+transition:stroke-dashoffset 0.28s ease;
+filter:drop-shadow(0 6px 10px rgba(148,163,184,0.16));
+}
+
+.ring-blue{stroke:#60a5fa}
+.ring-green{stroke:#34d399}
+.ring-red{stroke:#fb7185}
+
+.ring-center-label{
+font-size:14px;
+font-weight:700;
+fill:#64748b;
+text-anchor:middle;
+}
+
+.ring-center-value{
+font-size:34px;
+font-weight:700;
+fill:#1f2937;
+text-anchor:middle;
+}
+
+.rings-legend{
+display:grid;
+gap:10px;
+min-width:170px;
+}
+
+.ring-stat{
+background:rgba(255,255,255,0.44);
+border:1px solid rgba(255,255,255,0.66);
+border-radius:18px;
+padding:10px 12px;
+box-shadow:0 10px 20px rgba(148,163,184,0.10), inset 0 1px 0 rgba(255,255,255,0.78);
+backdrop-filter:blur(10px);
+}
+
+.ring-stat-top{
+display:flex;
+align-items:center;
+gap:8px;
+font-size:12px;
+font-weight:700;
+color:#516072;
+margin-bottom:4px;
+}
+
+.ring-dot{
+width:10px;
+height:10px;
+border-radius:50%;
+display:inline-block;
+}
+
+.ring-dot.blue{background:#60a5fa}
+.ring-dot.green{background:#34d399}
+.ring-dot.red{background:#fb7185}
+
+.ring-stat-val{
+font-size:20px;
+font-weight:700;
+color:#1f2937;
+}
+
+.graphs-section{
+margin-top:16px;
+background:rgba(255,255,255,0.38);
+border-radius:24px;
+border:1px solid rgba(255,255,255,0.62);
+padding:16px;
+cursor:pointer;
+box-shadow:0 10px 22px rgba(148,163,184,0.10), inset 0 1px 0 rgba(255,255,255,0.76);
+backdrop-filter:blur(14px);
+}
+
+.g-title{
+font-size:12px;
+font-weight:600;
+color:#516072;
+margin-bottom:10px;
+text-align:center;
+}
+
+.g-wrap{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+}
+
+.g-item{
+background:rgba(255,255,255,0.46);
+border-radius:22px;
+padding:12px;
+border:1px solid rgba(255,255,255,0.68);
+box-shadow:0 10px 20px rgba(148,163,184,0.08), inset 0 1px 0 rgba(255,255,255,0.78);
+}
+
+.g-item h3{
+font-size:11px;
+color:#516072;
+margin-bottom:8px;
+font-weight:600;
+}
+
+canvas{
+width:100%;
+height:160px;
+display:block;
+border:1px solid rgba(255,255,255,0.68);
+border-radius:18px;
+background:rgba(255,255,255,0.55);
+box-shadow:inset 0 1px 0 rgba(255,255,255,0.7), 0 8px 16px rgba(148,163,184,0.06);
+}
+
+.foot{
+margin:15px auto;
+max-width:280px;
+}
+
+.foot svg{
+width:100%;
+height:auto;
+filter:drop-shadow(0 10px 16px rgba(148,163,184,0.12));
+}
+
+#foot{
+fill:rgba(255,255,255,0.52);
+stroke:#aebfd2;
+}
+.imu-card{
+margin-top:16px;
+background:rgba(255,255,255,0.38);
+border:1px solid rgba(255,255,255,0.62);
+border-radius:24px;
+padding:16px;
+box-shadow:0 10px 22px rgba(148,163,184,0.10), inset 0 1px 0 rgba(255,255,255,0.76);
+backdrop-filter:blur(14px);
+}
+
+.imu-title{
+font-size:12px;
+font-weight:700;
+color:#516072;
+margin-bottom:12px;
+text-align:center;
+}
+
+.imu-grid{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:10px;
+}
+
+.imu-box{
+background:rgba(255,255,255,0.46);
+border:1px solid rgba(255,255,255,0.68);
+border-radius:16px;
+padding:10px;
+text-align:center;
+box-shadow:0 8px 16px rgba(148,163,184,0.08);
+}
+
+.imu-box span{
+display:block;
+font-size:11px;
+font-weight:700;
+color:#64748b;
+margin-bottom:4px;
+}
+
+.imu-box strong{
+display:block;
+font-family:Consolas, monospace;
+font-size:13px;
+font-weight:700;
+color:#1f2937;
+}
+
+.imu-box.wide{
+grid-column:1 / -1;
+}
+
+
+@media (max-width:768px){
+body{padding:16px}
+.header h1{font-size:2.1em}
+.main{grid-template-columns:1fr}
+.g-wrap{grid-template-columns:1fr}
+.data-grid{grid-template-columns:1fr}
+.rings-wrap{flex-direction:column}
+.rings-svg{width:210px;height:210px}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-top">UC Berkeley Mechanical Engineering</div>
+    <h1>Insole Pressure Monitor</h1>
+    <p>ME 292C Group 11 | Pressure Sensor Insole</p>
+  </div>
+
+  <div class="alert-msg" id="alert">WARNING: WEIGHT LIMIT EXCEEDED</div>
+
+  <div class="main">
+    <div class="card">
+      <h2>Control Panel</h2>
+
+      <div class="group">
+        <label>Foot Selection</label>
+        <div class="toggle">
+          <button class="active" onclick="footToggle('left')" id="leftBtn">Left Foot</button>
+          <button onclick="footToggle('right')" id="rightBtn">Right Foot</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label>Body Weight</label>
+        <input type="number" id="weight" value="191" min="0" max="500">
+        <div class="toggle">
+          <button class="active" onclick="unit('lb')" id="lbtn">lb</button>
+          <button onclick="unit('kg')" id="kbtn">kg</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label>Injured Area</label>
+        <select id="area" onchange="injuryUpd()">
+          <option value="big_toe">Big Toe</option>
+          <option value="side_toe">Side Toe</option>
+          <option value="heel">Heel</option>
+        </select>
+        <div class="injury-box" id="injbox">Monitoring: Big Toe</div>
+      </div>
+
+      <div class="group">
+        <label>Overall Load Limit</label>
+        <input type="range" min="0" max="100" value="30" class="slider" id="oLimit" oninput="upSlider('o')">
+        <span id="oVal" style="margin-left:8px;color:#516072;font-weight:bold;font-size:13px">30%</span>
+      </div>
+
+      <div class="group">
+        <label>Injured Area Load Limit</label>
+        <input type="range" min="0" max="50" value="10" class="slider" id="iLimit" oninput="upSlider('i')">
+        <span id="iVal" style="margin-left:8px;color:#516072;font-weight:bold;font-size:13px">10%</span>
+      </div>
+
+      <button class="submit" onclick="apply()">Apply Settings</button>
+
+      <div class="status">
+        <div class="dot"></div>
+        <span>Live Monitoring Active</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Live Sensor Data</h2>
+
+      <div class="rings-card">
+        <div class="rings-title">Activity Summary</div>
+        <div class="rings-wrap">
+          <svg class="rings-svg" viewBox="0 0 240 240">
+            <circle class="ring-bg" cx="120" cy="120" r="82" stroke-width="18"></circle>
+            <circle id="ringTotal" class="ring-progress ring-blue" cx="120" cy="120" r="82" stroke-width="18" stroke-dasharray="515.22" stroke-dashoffset="515.22"></circle>
+
+            <circle class="ring-bg" cx="120" cy="120" r="60" stroke-width="18"></circle>
+            <circle id="ringInj" class="ring-progress ring-green" cx="120" cy="120" r="60" stroke-width="18" stroke-dasharray="376.99" stroke-dashoffset="376.99"></circle>
+
+            <circle class="ring-bg" cx="120" cy="120" r="38" stroke-width="18"></circle>
+            <circle id="ringPeak" class="ring-progress ring-red" cx="120" cy="120" r="38" stroke-width="18" stroke-dasharray="238.76" stroke-dashoffset="238.76"></circle>
+
+            <text x="120" y="108" class="ring-center-label">Total Load</text>
+            <text x="120" y="144" id="ringCenterValue" class="ring-center-value">0%</text>
+          </svg>
+
+          <div class="rings-legend">
+            <div class="ring-stat">
+              <div class="ring-stat-top"><span class="ring-dot blue"></span>Total</div>
+              <div class="ring-stat-val" id="ringTotalVal">0%</div>
+            </div>
+            <div class="ring-stat">
+              <div class="ring-stat-top"><span class="ring-dot green"></span>Injured Area</div>
+              <div class="ring-stat-val" id="ringInjVal">0%</div>
+            </div>
+            <div class="ring-stat">
+              <div class="ring-stat-top"><span class="ring-dot red"></span>Peak Sensor</div>
+              <div class="ring-stat-val" id="ringPeakVal">0%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-grid">
+        <div class="data" id="heelD">
+          <div class="data-val" id="heelV">0%</div>
+          <div class="data-unit" id="heelL">Heel</div>
+        </div>
+        <div class="data" id="bigD">
+          <div class="data-val" id="bigV">0%</div>
+          <div class="data-unit" id="bigL">Big Toe</div>
+        </div>
+        <div class="data" id="sideD">
+          <div class="data-val" id="sideV">0%</div>
+          <div class="data-unit" id="sideL">Side Toe</div>
+        </div>
+      </div>
+
+      <div class="data total">
+        <div class="data-val" id="totalV">0%</div>
+        <div class="data-unit">Total Load</div>
+      </div>
+      
+
+
+        <div class="imu-card">
+        <div class="imu-title">Raw IMU + Temperature</div>
+
+        <div class="imu-grid">
+            <div class="imu-box">
+            <span>ax</span>
+            <strong id="axV">0.000</strong>
+            </div>
+
+            <div class="imu-box">
+            <span>ay</span>
+            <strong id="ayV">0.000</strong>
+            </div>
+
+            <div class="imu-box">
+            <span>az</span>
+            <strong id="azV">0.000</strong>
+            </div>
+
+            <div class="imu-box">
+            <span>gx</span>
+            <strong id="gxV">0.000</strong>
+            </div>
+
+            <div class="imu-box">
+            <span>gy</span>
+            <strong id="gyV">0.000</strong>
+            </div>
+
+            <div class="imu-box">
+            <span>gz</span>
+            <strong id="gzV">0.000</strong>
+            </div>
+
+            <div class="imu-box wide">
+            <span>temp</span>
+            <strong id="tempV">0.00 °C</strong>
+            </div>
+        </div>
+        </div>
+
+
+
+
+
+
+
+      <div class="graphs-section">
+        <div class="g-title">Real-Time Load Analysis</div>
+        <div class="g-wrap">
+          <div class="g-item">
+            <h3 id="injTitle">Injured Area Load</h3>
+            <canvas id="rtInj"></canvas>
+          </div>
+          <div class="g-item">
+            <h3>Total Load</h3>
+            <canvas id="rtTot"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Pressure Heatmap - <span id="footLabel">Left Foot</span></h2>
+      <div class="foot">
+        <svg viewBox="0 0 180 420">
+          <path id="foot" d="M 95 40
+          C 80 38 72 45 66 55
+          C 60 68 58 85 58 105
+          C 58 135 60 165 60 195
+          C 60 230 58 265 62 295
+          C 66 325 76 350 90 365
+          C 104 380 118 380 132 365
+          C 146 350 156 325 160 295
+          C 164 265 162 230 162 195
+          C 162 165 164 135 164 105
+          C 164 85 162 68 156 55
+          C 150 45 142 38 128 40
+          C 120 41 110 41 95 40 Z"
+          fill="#f5f5f5" stroke="#003262" stroke-width="2"/>
+
+            <circle id="zb" cx="85" cy="92" r="20" fill="#eff6ff"/>
+            <text id="zbTxt" x="85" y="87" font-size="10" font-weight="bold" fill="black" text-anchor="middle">Big</text>
+            <text id="zbp" x="85" y="101" font-size="10" font-weight="bold" fill="black" text-anchor="middle">0.0%</text>
+
+            <circle id="zs" cx="136" cy="92" r="20" fill="#eff6ff"/>
+            <text id="zsTxt" x="136" y="87" font-size="10" font-weight="bold" fill="black" text-anchor="middle">Side</text>
+            <text id="zsp" x="136" y="101" font-size="10" font-weight="bold" fill="black" text-anchor="middle">0.0%</text>
+
+            <circle id="zbl" cx="88" cy="145" r="19" fill="#eff6ff"/>
+            <text x="88" y="140" font-size="9" font-weight="bold" fill="black" text-anchor="middle">Ball L</text>
+            <text id="zblp" x="88" y="154" font-size="9" font-weight="bold" fill="black" text-anchor="middle">0.0%</text>
+
+            <circle id="zbr" cx="132" cy="145" r="19" fill="#eff6ff"/>
+            <text x="132" y="140" font-size="9" font-weight="bold" fill="black" text-anchor="middle">Ball R</text>
+            <text id="zbrp" x="132" y="154" font-size="9" font-weight="bold" fill="black" text-anchor="middle">0.0%</text>
+
+            <circle id="zhl" cx="82" cy="338" r="18" fill="#eff6ff"/>
+            <text x="82" y="333" font-size="9" font-weight="bold" fill="black" text-anchor="middle">Heel L</text>
+            <text id="zhlp" x="82" y="347" font-size="9" font-weight="bold" fill="black" text-anchor="middle">0.0%</text>
+
+            <circle id="zhc" cx="110" cy="318" r="18" fill="#eff6ff"/>
+            <text x="110" y="313" font-size="9" font-weight="bold" fill="black" text-anchor="middle">Heel C</text>
+            <text id="zhcp" x="110" y="327" font-size="9" font-weight="bold" fill="black" text-anchor="middle">0.0%</text>
+
+            <circle id="zhr" cx="138" cy="338" r="18" fill="#eff6ff"/>
+            <text x="138" y="333" font-size="9" font-weight="bold" fill="black" text-anchor="middle">Heel R</text>
+            <text id="zhrp" x="138" y="347" font-size="9" font-weight="bold" fill="black" text-anchor="middle">0.0%</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let u='lb', w=191, o=30, l=10, a='big_toe', tu='lb', foot='left'
+let rt_h=[], rt_m=[], rt_t=[]
+let connected=true, failCount=0
+const MAX_RT=60
+const RING_TOTAL_CIRC=515.22
+const RING_INJ_CIRC=376.99
+const RING_PEAK_CIRC=238.76
+
+function getLabel(d){
+  return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true})
+}
+
+function getAreaName(ar){
+  if(ar==='big_toe') return foot==='left'?'Big Toe':'Side Toe'
+  if(ar==='side_toe') return foot==='left'?'Side Toe':'Big Toe'
+  if(ar==='heel') return 'Heel'
+  return ar
+}
+
+function footToggle(f){
+  foot=f
+  document.getElementById('leftBtn').classList.toggle('active',f==='left')
+  document.getElementById('rightBtn').classList.toggle('active',f==='right')
+  document.getElementById('footLabel').textContent=(f==='left'?'Left':'Right')+' Foot'
+
+  if(f==='right'){
+    document.getElementById('zbTxt').textContent='Side'
+    document.getElementById('zsTxt').textContent='Big'
+    document.getElementById('bigL').textContent='Side Toe'
+    document.getElementById('sideL').textContent='Big Toe'
+  } else {
+    document.getElementById('zbTxt').textContent='Big'
+    document.getElementById('zsTxt').textContent='Side'
+    document.getElementById('bigL').textContent='Big Toe'
+    document.getElementById('sideL').textContent='Side Toe'
+  }
+
+  updateInjuryOptions()
+  updateTitles()
+  document.getElementById('injbox').textContent='Monitoring: '+getAreaName(a)
+}
+
+function updateInjuryOptions(){
+  let sel=document.getElementById('area')
+  if(foot==='left'){
+    sel.options[0].text='Big Toe'
+    sel.options[1].text='Side Toe'
+  } else {
+    sel.options[0].text='Side Toe'
+    sel.options[1].text='Big Toe'
+  }
+}
+
+function updateTitles(){
+  let areaName=getAreaName(a)
+  document.getElementById('injTitle').textContent=areaName+' Load'
+  document.querySelector('.rings-title').textContent='Activity Summary - '+areaName
+}
+
+function addData(inj,total){
+  rt_h.push(inj)
+  rt_m.push(total)
+  rt_t.push(getLabel(new Date()))
+  if(rt_h.length>MAX_RT){
+    rt_h.shift()
+    rt_m.shift()
+    rt_t.shift()
+  }
+}
+
+function drawChart(cid,data,limit,times){
+  let c=document.getElementById(cid)
+  if(!c) return
+
+  let ctx=c.getContext('2d')
+  let w=c.width=c.offsetWidth
+  let ht=c.height=c.offsetHeight
+  ctx.clearRect(0,0,w,ht)
+
+  if(data.length===0){
+    ctx.fillStyle='#94a3b8'
+    ctx.font='12px Arial'
+    ctx.textAlign='center'
+    ctx.fillText('No data available',w/2,ht/2)
+    return
+  }
+
+  let drawHt=ht-25
+
+  ctx.strokeStyle='#dbe4ee'
+  ctx.lineWidth=1
+  for(let i=0;i<=5;i++){
+    let y=drawHt/5*i
+    ctx.beginPath()
+    ctx.moveTo(0,y)
+    ctx.lineTo(w,y)
+    ctx.stroke()
+  }
+
+  let ty=drawHt-(limit/100)*drawHt
+  ctx.strokeStyle='#93c5fd'
+  ctx.lineWidth=2
+  ctx.setLineDash([4,4])
+  ctx.beginPath()
+  ctx.moveTo(0,ty)
+  ctx.lineTo(w,ty)
+  ctx.stroke()
+  ctx.setLineDash([])
+
+  data.forEach((v,i)=>{
+    let nv=data[i+1]
+    if(nv!==undefined){
+      let x1=w/(data.length-1||1)*i
+      let y1=drawHt-(v/100)*drawHt
+      let x2=w/(data.length-1||1)*(i+1)
+      let y2=drawHt-(nv/100)*drawHt
+      ctx.strokeStyle=(v>limit||nv>limit)?'#ef4444':'#60a5fa'
+      ctx.lineWidth=2.5
+      ctx.beginPath()
+      ctx.moveTo(x1,y1)
+      ctx.lineTo(x2,y2)
+      ctx.stroke()
+    }
+  })
+
+  ctx.fillStyle='#64748b'
+  ctx.font='bold 10px Arial'
+  ctx.textAlign='right'
+  for(let i=0;i<=5;i++){
+    let v=(100/5)*(5-i)
+    let y=drawHt/5*i
+    ctx.fillText(v.toFixed(0)+'%',w-2,y+3)
+  }
+}
+
+function upSlider(t){
+  if(t==='o') document.getElementById('oVal').textContent=document.getElementById('oLimit').value+'%'
+  else document.getElementById('iVal').textContent=document.getElementById('iLimit').value+'%'
+}
+
+function injuryUpd(){
+  a=document.getElementById('area').value
+  document.getElementById('injbox').textContent='Monitoring: '+getAreaName(a)
+  updateTitles()
+}
+
+function unit(un){
+  tu=un
+  document.getElementById('lbtn').classList.toggle('active',un==='lb')
+  document.getElementById('kbtn').classList.toggle('active',un==='kg')
+
+  let inp=document.getElementById('weight')
+  if(un==='kg'&&u==='lb') inp.value=(parseFloat(inp.value)/2.20462).toFixed(1)
+  else if(un==='lb'&&u==='kg') inp.value=(parseFloat(inp.value)*2.20462).toFixed(1)
+}
+
+function apply(){
+  u=tu
+  w=parseFloat(document.getElementById('weight').value)
+  o=parseInt(document.getElementById('oLimit').value)
+  l=parseInt(document.getElementById('iLimit').value)
+  a=document.getElementById('area').value
+  updateTitles()
+
+  let wkg = (u === 'lb') ? (w / 2.20462) : w
+
+  fetch('/settings', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      body_weight_kg:wkg,
+      overall_limit_pct:o
+    })
+  }).catch(()=>{})
+
+  let btn=document.querySelector('.submit')
+  btn.textContent='Settings Applied'
+  btn.style.background='linear-gradient(135deg, rgba(52,211,153,0.92), rgba(45,212,191,0.92))'
+  setTimeout(()=>{
+    btn.textContent='Apply Settings'
+    btn.style.background='linear-gradient(135deg, rgba(96,165,250,0.95), rgba(129,140,248,0.92))'
+  },800)
+}
+
+function getColor(pct,lim){
+  if(lim <= 0) return '#eff6ff'
+  let r=pct/lim
+  if(r <= 0.0) return '#eff6ff'
+  if(r < 0.3) return '#dbeafe'
+  if(r < 0.6) return '#bfdbfe'
+  if(r < 0.9) return '#93c5fd'
+  return '#ef4444'
+}
+
+function getFoot(pct,lim){
+  if(lim <= 0) return 'rgba(255,255,255,0.52)'
+  let r=pct/lim
+  if(r < 0.5) return 'rgba(255,255,255,0.52)'
+  if(r < 0.85) return '#eef6ff'
+  return '#fff1f2'
+}
+
+function setRing(elId,value,maxVal,circ){
+  let el=document.getElementById(elId)
+  if(!el) return
+  let pct=maxVal>0?Math.max(0,Math.min(value/maxVal,1)):0
+  el.style.strokeDasharray=circ.toFixed(2)
+  el.style.strokeDashoffset=(circ*(1-pct)).toFixed(2)
+}
+
+function updateRings(totalPct,injPct,peakPct){
+  setRing('ringTotal',totalPct,Math.max(o,1),RING_TOTAL_CIRC)
+  setRing('ringInj',injPct,Math.max(l,1),RING_INJ_CIRC)
+  setRing('ringPeak',peakPct,100,RING_PEAK_CIRC)
+
+  document.getElementById('ringCenterValue').textContent=totalPct.toFixed(1)+'%'
+  document.getElementById('ringTotalVal').textContent=totalPct.toFixed(1)+'%'
+  document.getElementById('ringInjVal').textContent=injPct.toFixed(1)+'%'
+  document.getElementById('ringPeakVal').textContent=peakPct.toFixed(1)+'%'
+}
+
+function updPct(id,pct,alrt,inj){
+  let vEl=document.getElementById(id+'V')
+  let dEl=document.getElementById(id+'D')
+  if(vEl) vEl.textContent=pct.toFixed(1)+'%'
+  if(dEl){
+    dEl.classList.toggle('alert',alrt)
+    dEl.classList.toggle('injured',inj)
+  }
+}
+
+function updSvg(pct,lim,cid,pid){
+  let pEl=document.getElementById(pid)
+  let cEl=document.getElementById(cid)
+  if(pEl) pEl.textContent=pct.toFixed(1)+'%'
+  if(cEl) cEl.setAttribute('fill',getColor(pct,lim))
+}
+
+function update(data){
+  let hp = Number.isFinite(data.heel_pct) ? data.heel_pct : 0
+  let bp = Number.isFinite(data.big_toe_pct) ? data.big_toe_pct : 0
+  let sp = Number.isFinite(data.side_toe_pct) ? data.side_toe_pct : 0
+  let tot = Number.isFinite(data.total_pct) ? data.total_pct : 0
+    let blp = Number.isFinite(data.ball_l_pct) ? data.ball_l_pct : 0
+    let brp = Number.isFinite(data.ball_r_pct) ? data.ball_r_pct : 0
+    let hlp = Number.isFinite(data.heel_l_pct) ? data.heel_l_pct : 0
+    let hcp = Number.isFinite(data.heel_c_pct) ? data.heel_c_pct : 0
+    let hrp = Number.isFinite(data.heel_r_pct) ? data.heel_r_pct : 0
+  let ax = Number.isFinite(data.ax) ? data.ax : 0
+    let ay = Number.isFinite(data.ay) ? data.ay : 0
+    let az = Number.isFinite(data.az) ? data.az : 0
+
+    let gx = Number.isFinite(data.gx) ? data.gx : 0
+    let gy = Number.isFinite(data.gy) ? data.gy : 0
+    let gz = Number.isFinite(data.gz) ? data.gz : 0
+
+    let temp = Number.isFinite(data.temp) ? data.temp : 0
+  let ip=0
+  if(a==='heel') ip=hp
+  else if(a==='big_toe') ip=bp
+  else if(a==='side_toe') ip=sp
+
+  let peak=Math.max(hp,bp,sp)
+
+  addData(ip,tot)
+  drawChart('rtInj',rt_h,l,rt_t)
+  drawChart('rtTot',rt_m,o,rt_t)
+
+  let heal=a==='heel'&&hp>l
+  let big=a==='big_toe'&&bp>l
+  let side=a==='side_toe'&&sp>l
+
+  updPct('heel',hp,heal,a==='heel')
+  updPct('big',bp,big,a==='big_toe')
+  updPct('side',sp,side,a==='side_toe')
+  updPct('total',tot,tot>o,false)
+
+  let hl=a==='heel'?l:o
+  let bl=a==='big_toe'?l:o
+  let sl=a==='side_toe'?l:o
+
+    if(foot === 'left'){
+    updSvg(bp,bl,'zb','zbp')
+    updSvg(sp,sl,'zs','zsp')
+    }else{
+    updSvg(sp,sl,'zb','zbp')
+    updSvg(bp,bl,'zs','zsp')
+    }
+
+    updSvg(blp,o,'zbl','zblp')
+    updSvg(brp,o,'zbr','zbrp')
+
+    updSvg(hlp,hl,'zhl','zhlp')
+    updSvg(hcp,hl,'zhc','zhcp')
+    updSvg(hrp,hl,'zhr','zhrp')
+
+  document.getElementById('foot').setAttribute('fill',getFoot(tot,o))
+  updateRings(tot,ip,peak)
+
+
+    document.getElementById('axV').textContent = ax.toFixed(3)
+    document.getElementById('ayV').textContent = ay.toFixed(3)
+    document.getElementById('azV').textContent = az.toFixed(3)
+
+    document.getElementById('gxV').textContent = gx.toFixed(3)
+    document.getElementById('gyV').textContent = gy.toFixed(3)
+    document.getElementById('gzV').textContent = gz.toFixed(3)
+
+    document.getElementById('tempV').textContent = temp.toFixed(2) + ' °C'
+
+  let alrt=heal||big||side||tot>o
+  document.getElementById('alert').classList.toggle('show',alrt)
+
+
+}
+
+function checkConnection(){
+  fetch('/data').then(r=>r.json()).then(d=>{
+    update(d)
+    failCount=0
+    if(!connected){
+      connected=true
+      document.querySelector('.dot').classList.remove('disconnected')
+      document.querySelector('.dot').classList.add('connected')
+    }
+  }).catch(()=>{
+    failCount++
+    if(failCount>=3&&connected){
+      connected=false
+      document.querySelector('.dot').classList.add('disconnected')
+      document.querySelector('.dot').classList.remove('connected')
+    }
+  })
+}
+
+updateTitles()
+updateInjuryOptions()
+document.querySelector('.dot').classList.add('connected')
+updateRings(0,0,0)
+setInterval(checkConnection,300)
+checkConnection()
+</script>
+</body>
+</html>

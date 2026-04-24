@@ -31,8 +31,11 @@
 // ---------------------------------------------------------------------------
 
 // Bus 0 is used for both ADS1115 boards.
-static constexpr int SDA_BUS0 = 22;
-static constexpr int SCL_BUS0 = 20;
+// static constexpr int SDA_BUS0 = 22;
+// static constexpr int SCL_BUS0 = 20;
+
+static constexpr int SDA_BUS0 = SDA;
+static constexpr int SCL_BUS0 = SCL;
 
 // Bus 1 is used for the IMU.
 static constexpr int SDA_BUS1 = 15;
@@ -153,8 +156,12 @@ void printCsvHeader() {
 }
 
 void initAdsBoards() {
+
   // Both ADC boards share the same ESP32 I2C bus.
   Wire.begin(SDA_BUS0, SCL_BUS0);
+  
+  ads1.setGain(GAIN_TWOTHIRDS);
+  ads2.setGain(GAIN_TWOTHIRDS);
 
   ads1.setDataRate(RATE_ADS1115_128SPS);
   if (!ads1.begin(ADS1_ADDRESS, &Wire)) {
